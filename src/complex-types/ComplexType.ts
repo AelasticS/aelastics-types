@@ -230,7 +230,7 @@ export abstract class ComplexTypeC<
           case 'continue':
             // after one child
             node.currentChild! = nodeInfoChild
-            node.currentChild!.inputArg = childResult
+            node.currentChild!.currentResult = childResult
             ;[currentResult, whatToDo] = f(node, 'AfterChild', context) /// result is the same as at the beginning!!!
         }
       }

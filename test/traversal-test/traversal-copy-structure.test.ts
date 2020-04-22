@@ -22,12 +22,15 @@ const copyObjectPropertyStructure: TraversalFunc_Node<any, { [key: string]: any 
       if (position === 'BeforeChildren') {
         return [{}, 'continue']
       }
-      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
-        node.inputArg[node.extra.propName!] = node.currentResult
+      if (position === 'AfterChild') {
+        node.currentResult![node.currentChild!.extra.propName!] = node.currentChild?.currentResult
       }
-      if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
-        node.inputArg[node.extra.index!] = node.currentResult
-      }
+      /*      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
+              node.inputArg[node.extra.propName!] = node.currentResult
+            }
+            if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
+              node.inputArg[node.extra.index!] = node.currentResult
+            }*/
       /*      if (position === 'AfterAllChildren' && node.role === 'asRoot') {
       }*/
       break
@@ -35,17 +38,24 @@ const copyObjectPropertyStructure: TraversalFunc_Node<any, { [key: string]: any 
       if (position === 'BeforeChildren') {
         node.currentResult = []
       }
-      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
-        node.inputArg[node.extra.propName!] = node.currentResult
+      if (position === 'AfterChild') {
+        node.currentResult![node.currentChild!.extra.index!] = node.currentChild?.currentResult
       }
-      if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
-        node.inputArg[node.extra.index!] = node.currentResult
-      }
-      break
+
+    /*      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
+            node.inputArg[node.extra.propName!] = node.currentResult
+          }
+          if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
+            node.inputArg[node.extra.index!] = node.currentResult
+          }
+          break */
   }
   if (isSimpleType(node.type) && node.role === 'asProperty' && node.extra?.propName === 'name') {
-    node.inputArg[node.extra.propName!] = `${node.instance}-copy`
+    node.currentResult = `${node.instance}-copy` as any
   }
+  /*  if (isSimpleType(node.type) && node.role === 'asProperty' && node.extra?.propName === 'name') {
+      node.inputArg[node.extra.propName!] = `${node.instance}-copy`
+    }*/
   return [node.currentResult!, 'continue']
 }
 

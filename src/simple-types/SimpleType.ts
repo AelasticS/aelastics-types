@@ -52,6 +52,7 @@ export abstract class SimpleTypeC<V, G = V, T = V> extends TypeC<V, G, T> {
     f: TraversalFunc_Node<A, R>,
     context: TraversalContext<R>
   ): [R, WhatToDo] {
+    node.currentResult = node.instance
     return f(node, 'Leaf', context)
   }
 }
