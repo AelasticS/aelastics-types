@@ -11,6 +11,7 @@ import {
   RoleType,
   TraversalContext,
   TraversalFunc_NEW,
+  TraversalFunc_Node,
   TraversalFunc_OLD,
   WhatToDo
 } from '../common/TraversalContext'
@@ -46,17 +47,11 @@ export abstract class SimpleTypeC<V, G = V, T = V> extends TypeC<V, G, T> {
     return f(this, instance, currentResult, 'Leaf', role, extra, context)
   }
 
-  traverseCyclic_NEW<A, R>(
-    instance: any,
-    f: TraversalFunc_NEW<A, R>,
-    accumulator: A,
-    parentResult: R,
-    role: RoleType,
-    optional: boolean,
-    extra: ExtraInfo,
-    context: TraversalContext<R>,
-    parentNode?: NodeInfo<any, R>
+  public traverseCyclicDFS<A, R>(
+    node: NodeInfo<A, R>,
+    f: TraversalFunc_Node<A, R>,
+    context: TraversalContext<R>
   ): [R, WhatToDo] {
-    return f(this as Any, instance, accumulator, parentResult, 'Leaf', role, context, parentNode)
+    return f(node, 'Leaf', context)
   }
 }

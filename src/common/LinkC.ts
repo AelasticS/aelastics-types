@@ -5,14 +5,14 @@
 
 import { Any, FromDtoContext, ToDtoContext, TypeC } from './Type'
 import { TypeSchema, ValidateStatusEnum } from './TypeSchema'
-import { failure, failures, Path, Result, success } from 'aelastics-result'
+import { failure, Path, Result, success } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
 import {
   ExtraInfo,
   NodeInfo,
   RoleType,
   TraversalContext,
-  TraversalFunc_NEW,
+  TraversalFunc_Node,
   TraversalFunc_OLD,
   WhatToDo
 } from './TraversalContext'
@@ -46,29 +46,14 @@ export class LinkC extends TypeC<any> {
     throw new Error(`Link to type:'${this.path}' is undefined`)
   }
 
-  traverseCyclic_NEW<A, R>(
-    instance: any,
-    f: TraversalFunc_NEW<A, R>,
-    accumulator: A,
-    parentResult: R,
-    role: RoleType,
-    optional: boolean,
-    extra: ExtraInfo,
-    context: TraversalContext<R>,
-    parentNode?: NodeInfo<any, R>
+  public traverseCyclicDFS<A, R>(
+    node: NodeInfo<A, R>,
+    f: TraversalFunc_Node<A, R>,
+    context: TraversalContext<R>
   ): [R, WhatToDo] {
     if (this.resolvedType) {
-      return this.resolvedType.traverseCyclic_NEW(
-        instance,
-        f,
-        accumulator,
-        parentResult,
-        role,
-        optional,
-        extra,
-        context,
-        parentNode
-      )
+      node.type = this.resolvedType
+      return this.resolvedType.traverseCyclicDFS<A, R>(node, f, context)
     }
     throw new Error(`Link to type:'${this.path}' is undefined`)
   }
@@ -106,12 +91,6 @@ export class LinkC extends TypeC<any> {
     this.resolvedType = this.schema.getType(this.path)
     return this.resolvedType
   }
-
-  /**
-   *  ToDo:  Nikola: validation assumes that external references are resolved
-   */
-
-  //
 
   validateLinks(traversed: Map<Any, Any>): Result<boolean> {
     if (this.schema.validateStatus === ValidateStatusEnum.invalid) {

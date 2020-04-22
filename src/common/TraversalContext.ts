@@ -22,8 +22,9 @@ export interface NodeInfo<A, R> {
   type: Any
   instance: any
   role: RoleType
-  result: R
+  inputArg: R
   accumulator: A
+  currentResult?: R
   optional: boolean
   extra: Partial<{
     propName: string
@@ -32,18 +33,19 @@ export interface NodeInfo<A, R> {
     //    unionInstance:any
     //    dicriminantValue:any
   }>
-  parent: NodeInfo<A, R> | undefined
-  currentChild: NodeInfo<A, R> | undefined
+  parent?: NodeInfo<A, R>
+  currentChild?: NodeInfo<A, R>
 }
 
 export function createNodeInfo<A, R>(
   type: Any,
   instance: any,
   role: RoleType,
-  result: R,
+  inputArg: R,
   accumulator: A,
   optional: boolean,
   extra: IObjectLiteral,
+  currentResult?: R,
   parent?: NodeInfo<A, R>,
   child?: NodeInfo<A, R>
 ): NodeInfo<A, R> {
@@ -51,10 +53,11 @@ export function createNodeInfo<A, R>(
     type: type,
     instance: instance,
     role: role,
-    result: result,
+    inputArg: inputArg,
     accumulator: accumulator,
     optional: optional,
     extra: extra,
+    currentResult: currentResult,
     parent: parent,
     currentChild: child
   }
@@ -72,13 +75,20 @@ export type ExtraInfo = Partial<{
 
 export type WhatToDo = 'continue' | 'terminate' | 'skipChildren' | 'skipChild'
 
+export type TraversalFunc_Node<A, R> = (
+  node: NodeInfo<A, R>,
+  pos: PositionType,
+  ct: TraversalContext<R>
+) => [R, WhatToDo]
+
 export type TraversalFunc_NEW<A, R> = (
   type: Any,
   value: any,
   accumulator: A,
-  parentResult: R,
+  prevousNodeResult: R,
   position: PositionType,
   role: RoleType,
+  extra: ExtraInfo,
   context: TraversalContext<R>,
   parentNodeInfo?: NodeInfo<A, R>
 ) => [R, WhatToDo]

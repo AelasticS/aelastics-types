@@ -25,6 +25,7 @@ import {
   RoleType,
   TraversalContext,
   TraversalFunc_NEW,
+  TraversalFunc_Node,
   TraversalFunc_OLD,
   WhatToDo
 } from './TraversalContext'
@@ -351,18 +352,9 @@ export abstract class TypeC<V, G = V, T = V> {
     )
   }
 
-  public traverse_NEW<A, R>(instance: V, f: TraversalFunc_NEW<A, R>, initAcc: A, initResult: R): R {
-    let [res, _] = this.traverseCyclic_NEW<A, R>(
-      instance,
-      f,
-      initAcc,
-      initResult,
-      'asRoot',
-      false,
-      {},
-      new TraversalContext<R>(initResult, false),
-      undefined
-    )
+  public traverseDFS<A, R>(instance: V, f: TraversalFunc_Node<A, R>, initAcc: A, inputArg: R): R {
+    let node = createNodeInfo<A, R>(this, instance, 'asRoot', inputArg, initAcc, false, {})
+    let [res, _] = this.traverseCyclicDFS<A, R>(node, f, new TraversalContext<R>(inputArg, false))
     return res
   }
 
@@ -376,16 +368,10 @@ export abstract class TypeC<V, G = V, T = V> {
     context: TraversalContext<R>
   ): R
 
-  public abstract traverseCyclic_NEW<A, R>(
-    instance: any,
-    f: TraversalFunc_NEW<any, R>,
-    accumulator: A,
-    parentResult: R,
-    role: RoleType,
-    optional: boolean,
-    extra: ExtraInfo,
-    context: TraversalContext<R>,
-    parentNode?: NodeInfo<any, R>
+  public abstract traverseCyclicDFS<A, R>(
+    node: NodeInfo<A, R>,
+    f: TraversalFunc_Node<A, R>,
+    context: TraversalContext<R>
   ): [R, WhatToDo]
 }
 

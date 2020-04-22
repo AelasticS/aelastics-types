@@ -1,56 +1,63 @@
-import { Place, Belgrade } from '../example/travel-network'
+import { Place, Belgrade, IPlace } from '../example/travel-network'
 import { types } from '../../src/aelastics-types'
-import TraversalFunc = types.TraversalFunc
 import isSimpleType = types.isSimpleType
-import { TraversalFunc_NEW } from '../../src/common/TraversalContext'
+import { TraversalFunc_Node, WhatToDo } from '../../src/common/TraversalContext'
 
-const copyObjectPropertyStructure: TraversalFunc_NEW<any, { [key: string]: any }> = (
-  type,
+const copyObjectPropertyStructure: TraversalFunc_Node<any, { [key: string]: any }> = (
+  node,
+  position,
+  ct
+  /*  type,
   value,
   accumulator,
-  parentResult,
+  prevousNodeResult,
   position,
   role,
+  extra,
   context,
-  parentNodeInfo
-) => {
-  switch (type.category) {
+  parentNodeInfo*/
+): [{ [key: string]: any }, WhatToDo] => {
+  switch (node.type.category) {
     case 'Object':
       if (position === 'BeforeChildren') {
-        currentResult = {}
+        return [{}, 'continue']
       }
-      if (position === 'AfterAllChildren' && role === 'asProperty') {
-        extra.parentResult[extra.propName!] = currentResult
-        //       currentResult = extra.parentResult
+      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
+        node.inputArg[node.extra.propName!] = node.currentResult
       }
-      if (position === 'AfterAllChildren' && role === 'asArrayElement') {
-        ;(extra.parentResult as any)[extra.index!] = currentResult
-        currentResult = extra.parentResult
+      if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
+        node.inputArg[node.extra.index!] = node.currentResult
       }
-
-      if (position === 'AfterAllChildren' && role === 'asRoot') {
-        currentResult = currentResult
-      }
+      /*      if (position === 'AfterAllChildren' && node.role === 'asRoot') {
+      }*/
       break
     case 'Array':
       if (position === 'BeforeChildren') {
-        currentResult = []
+        node.currentResult = []
       }
-      if (position === 'AfterAllChildren' && role === 'asProperty') {
-        extra.parentResult[extra.propName!] = currentResult
-        //       currentResult = extra.parentResult
+      if (position === 'AfterAllChildren' && node.role === 'asProperty') {
+        node.inputArg[node.extra.propName!] = node.currentResult
+      }
+      if (position === 'AfterAllChildren' && node.role === 'asArrayElement') {
+        node.inputArg[node.extra.index!] = node.currentResult
       }
       break
   }
-  if (isSimpleType(type) && role === 'asProperty' && extra?.propName === 'name') {
-    extra.parentResult[extra.propName!] = `${value}-copy`
+  if (isSimpleType(node.type) && node.role === 'asProperty' && node.extra?.propName === 'name') {
+    node.inputArg[node.extra.propName!] = `${node.instance}-copy`
   }
-  return currentResult
+  return [node.currentResult!, 'continue']
 }
 
 describe('Test cases for copying structure traversals', () => {
   it('should an object copy - only simple and object properties', () => {
-    let copy = Place.traverse(Belgrade, copyObjectPropertyStructure, {})
+    let copy: IPlace = Place.traverseDFS<undefined, {}>(
+      Belgrade,
+      copyObjectPropertyStructure,
+      undefined,
+      Place.defaultValue()
+    ) as IPlace
     expect(copy.name).toEqual('Belgrade-copy')
+    expect(copy.neighbor.length).toEqual(3)
   })
 })

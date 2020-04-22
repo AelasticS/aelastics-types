@@ -12,6 +12,7 @@ import {
   RoleType,
   TraversalContext,
   TraversalFunc_NEW,
+  TraversalFunc_Node,
   TraversalFunc_OLD,
   WhatToDo
 } from '../common/TraversalContext'
@@ -185,63 +186,39 @@ export abstract class ComplexTypeC<
     return accumulator
   }
 
-  traverseCyclic_NEW<A, R>(
-    instance: any,
-    f: TraversalFunc_NEW<any, R>,
-    accumulator: A,
-    parentResult: R,
-    role: RoleType,
-    optional: boolean,
-    extra: ExtraInfo,
-    context: TraversalContext<R>,
-    parentNode?: NodeInfo<any, R>
+  traverseCyclicDFS<A, R>(
+    node: NodeInfo<A, R>,
+    f: TraversalFunc_Node<A, R>,
+    context: TraversalContext<R>
   ): [R, WhatToDo] {
-    let pair: TypeInstancePair<Any, any> = [this, instance]
+    let pair: TypeInstancePair<Any, any> = [this, node.instance]
     if (context.traversed.has(pair)) {
       return [context.traversed.get(pair), 'continue']
     }
     // before children
-    let [currentResult, whatToDo] = f(
-      this,
-      instance,
-      accumulator,
-      parentResult,
-      'BeforeChildren',
-      role,
-      context,
-      parentNode
-    )
+    let [currentResult, whatToDo] = f(node, 'BeforeChildren', context)
     context.traversed.set(pair, currentResult)
+    node.currentResult = currentResult
 
+    // ToDo WhatToDo
     // add parent extra info
-    context.pushEntry(role, { parentType: this, parentInstance: instance })
-    let thisNodeInfo = createNodeInfo(
-      this,
-      instance,
-      role,
-      currentResult,
-      accumulator,
-      optional,
-      extra,
-      parentNode
-    )
+    //  context.pushEntry(node.role, { parentType: this, parentInstance: node.instance })
 
-    for (let [childType, child, childRole, extra] of this.children(instance)) {
+    for (let [childType, child, childRole, childExtra] of this.children(node.instance)) {
       if (childType instanceof SimpleTypeC && context.skipSimpleTypes) {
         continue
       } else {
-        let [childResult, childWhatToDo] = this.traverseCyclic_NEW(
-          // childType.traverseCyclic_NEW(
-          child,
-          f,
-          accumulator,
-          currentResult,
-          childRole,
-          false,
-          extra,
-          context,
-          thisNodeInfo
-        )
+        let nodeInfoChild = {
+          type: childType,
+          instance: child,
+          role: childRole,
+          inputArg: currentResult,
+          accumulator: node.accumulator,
+          optional: false,
+          extra: childExtra as ExtraInfo,
+          parent: node
+        }
+        let [childResult, childWhatToDo] = childType.traverseCyclicDFS(nodeInfoChild, f, context)
         if (childWhatToDo === 'skipChildren') {
           break
         }
@@ -252,31 +229,16 @@ export abstract class ComplexTypeC<
             return [currentResult, whatToDo]
           case 'continue':
             // after one child
-            ;[currentResult, whatToDo] = f(
-              this,
-              instance,
-              accumulator,
-              currentResult,
-              'AfterChild',
-              role,
-              context,
-              parentNode
-            )
+            node.currentChild! = nodeInfoChild
+            node.currentChild!.inputArg = childResult
+            ;[currentResult, whatToDo] = f(node, 'AfterChild', context) /// result is the same as at the beginning!!!
         }
       }
     }
     // after children, no children extra, only parent
-    ;[currentResult, whatToDo] = f(
-      this,
-      instance,
-      accumulator,
-      currentResult,
-      'AfterAllChildren',
-      role,
-      context,
-      parentNode
-    )
-    context.popEntry()
+    node.currentResult = context.traversed.get(pair)
+    ;[currentResult, whatToDo] = f(node, 'AfterAllChildren', context) /// input
+    //    context.popEntry()
     return [currentResult, whatToDo]
   }
 }

@@ -11,6 +11,7 @@ import {
   RoleType,
   TraversalContext,
   TraversalFunc_NEW,
+  TraversalFunc_Node,
   TraversalFunc_OLD,
   WhatToDo
 } from './TraversalContext'
@@ -75,28 +76,12 @@ export class OptionalTypeC<T extends TypeC<any>> extends TypeC<
     )
   }
 
-  traverseCyclic_NEW<A, R>(
-    instance: any,
-    f: TraversalFunc_NEW<A, R>,
-    accumulator: A,
-    parentResult: R,
-    role: RoleType,
-    optional: boolean,
-    extra: ExtraInfo,
-    context: TraversalContext<R>,
-    parentNode?: NodeInfo<any, R>
+  traverseCyclicDFS<A, R>(
+    node: NodeInfo<A, R>,
+    f: TraversalFunc_Node<A, R>,
+    context: TraversalContext<R>
   ): [R, WhatToDo] {
-    return this.base.traverseCyclic_NEW(
-      instance,
-      f,
-      accumulator,
-      parentResult,
-      role,
-      true,
-      extra,
-      context,
-      parentNode
-    )
+    return this.base.traverseCyclicDFS(node, f, context)
   }
 
   validateLinks(traversed: Map<Any, Any>): Result<boolean> {
