@@ -24,14 +24,7 @@ import {
 } from '../common/Type'
 import { ComplexTypeC } from './ComplexType'
 import { TypeInstancePair, VisitedNodes } from '../common/VisitedNodes'
-import { SimpleTypeC } from '../simple-types/SimpleType'
-import {
-  ExtraInfo,
-  PositionType,
-  RoleType,
-  TraversalContext,
-  TraversalFunc_OLD
-} from '../common/TraversalContext'
+import { ExtraInfo, RoleType } from '../common/TraversalContext'
 
 /**
  * Array type

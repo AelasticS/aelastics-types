@@ -33,12 +33,7 @@ import { MapTypeC } from './Map'
 import { TypeInstancePair, VisitedNodes } from '../common/VisitedNodes'
 import { LinkC } from '../common/LinkC'
 import { SimpleTypeC } from '../simple-types/SimpleType'
-import {
-  ExtraInfo,
-  RoleType,
-  TraversalContext,
-  TraversalFunc_OLD
-} from '../common/TraversalContext'
+import { ExtraInfo, RoleType } from '../common/TraversalContext'
 
 export interface Props {
   [key: string]: Any // TypeC<any>

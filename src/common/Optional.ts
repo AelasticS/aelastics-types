@@ -4,17 +4,7 @@
 
 import { success, Path, Result, failures, isFailure, ValidationError } from 'aelastics-result'
 import { Any, ToDtoContext, DtoTypeOf, TypeC, TypeOf } from './Type'
-import {
-  ExtraInfo,
-  NodeInfo,
-  PositionType,
-  RoleType,
-  TraversalContext,
-  TraversalFunc_NEW,
-  TraversalFunc_Node,
-  TraversalFunc_OLD,
-  WhatToDo
-} from './TraversalContext'
+import { NodeInfo, TraversalContext, TraversalFunc, WhatToDo } from './TraversalContext'
 
 const getOptionalName = (base: Any): string => `optional ${base.name}`
 
@@ -58,29 +48,7 @@ export class OptionalTypeC<T extends TypeC<any>> extends TypeC<
     }
   }
 
-  traverseCyclic<R>(
-    instance: TypeOf<T> | undefined,
-    f: TraversalFunc_OLD<R>,
-    currentResult: R,
-    role: RoleType,
-    extra: ExtraInfo,
-    context: TraversalContext<R>
-  ): R {
-    return this.base.traverseCyclic(
-      instance,
-      f,
-      currentResult,
-      role,
-      { ...extra, ...{ optional: true } },
-      context
-    )
-  }
-
-  traverseCyclicDFS<A, R>(
-    node: NodeInfo<A, R>,
-    f: TraversalFunc_Node<A, R>,
-    context: TraversalContext<R>
-  ): [R, WhatToDo] {
+  traverseCyclicDFS(node: NodeInfo, f: TraversalFunc, context: TraversalContext): [any, WhatToDo] {
     return this.base.traverseCyclicDFS(node, f, context)
   }
 

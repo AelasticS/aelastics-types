@@ -18,17 +18,7 @@ import {
   ValidationError
 } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
-import {
-  createNodeInfo,
-  ExtraInfo,
-  NodeInfo,
-  RoleType,
-  TraversalContext,
-  TraversalFunc_NEW,
-  TraversalFunc_Node,
-  TraversalFunc_OLD,
-  WhatToDo
-} from './TraversalContext'
+import { NodeInfo, TraversalContext, TraversalFunc, WhatToDo } from './TraversalContext'
 
 export type Predicate<T> = (value: T) => boolean
 
@@ -341,46 +331,30 @@ export abstract class TypeC<V, G = V, T = V> {
 
   public abstract validateLinks(traversed: Map<Any, Any>): Result<boolean>
 
-  public traverse<R>(instance: V, f: TraversalFunc_OLD<R>, initValue: R): R {
-    return this.traverseCyclic<R>(
-      instance,
-      f,
-      initValue,
-      'asRoot',
-      { parentResult: initValue },
-      new TraversalContext<R>(initValue, false)
-    )
-  }
-
-  public traverseDFS<A, R>(instance: V, f: TraversalFunc_Node<A, R>, initAcc: A, inputArg: R): R {
-    let node = createNodeInfo<A, R>(this, instance, 'asRoot', inputArg, initAcc, false, {})
-    let [res, _] = this.traverseCyclicDFS<A, R>(node, f, new TraversalContext<R>(inputArg, false))
+  public traverseDFS(instance: V, f: TraversalFunc, initAcc: any, inputArg: any): any {
+    let node: NodeInfo = {
+      type: this,
+      instance: instance,
+      role: 'asRoot',
+      inputArg: inputArg,
+      accumulator: initAcc,
+      extra: {},
+      isOptional: false
+    }
+    let [res, a] = this.traverseCyclicDFS(node, f, new TraversalContext(inputArg, false))
     return res
   }
 
-  public abstract traverseCyclic<R>(
-    instance: V,
-    f: TraversalFunc_OLD<R>,
-    currentResult: R,
-    role: RoleType,
-    //    position: PositionType,
-    extra: ExtraInfo,
-    context: TraversalContext<R>
-  ): R
-
-  public abstract traverseCyclicDFS<A, R>(
-    node: NodeInfo<A, R>,
-    f: TraversalFunc_Node<A, R>,
-    context: TraversalContext<R>
-  ): [R, WhatToDo]
+  public abstract traverseCyclicDFS(
+    node: NodeInfo,
+    f: TraversalFunc,
+    context: TraversalContext
+  ): [any, WhatToDo]
 }
 
 /**
  *  'any' type
  */
-/*
-export interface Any extends TypeC<any> {}
-*/
 
 export type Any = TypeC<any, any, any>
 

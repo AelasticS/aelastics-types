@@ -7,15 +7,7 @@ import { Any, FromDtoContext, ToDtoContext, TypeC } from './Type'
 import { TypeSchema, ValidateStatusEnum } from './TypeSchema'
 import { failure, Path, Result, success } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
-import {
-  ExtraInfo,
-  NodeInfo,
-  RoleType,
-  TraversalContext,
-  TraversalFunc_Node,
-  TraversalFunc_OLD,
-  WhatToDo
-} from './TraversalContext'
+import { NodeInfo, TraversalContext, TraversalFunc, WhatToDo } from './TraversalContext'
 
 export class LinkC extends TypeC<any> {
   public readonly schema: TypeSchema
@@ -32,28 +24,14 @@ export class LinkC extends TypeC<any> {
     return undefined
   }
 
-  traverseCyclic<R>(
-    instance: any,
-    f: TraversalFunc_OLD<R>,
-    currentResult: R,
-    role: RoleType,
-    extra: ExtraInfo,
-    context: TraversalContext<R>
-  ): R {
-    if (this.resolvedType) {
-      return this.resolvedType.traverseCyclic(instance, f, currentResult, role, extra, context)
-    }
-    throw new Error(`Link to type:'${this.path}' is undefined`)
-  }
-
-  public traverseCyclicDFS<A, R>(
-    node: NodeInfo<A, R>,
-    f: TraversalFunc_Node<A, R>,
-    context: TraversalContext<R>
-  ): [R, WhatToDo] {
+  public traverseCyclicDFS(
+    node: NodeInfo,
+    f: TraversalFunc,
+    context: TraversalContext
+  ): [any, WhatToDo] {
     if (this.resolvedType) {
       node.type = this.resolvedType
-      return this.resolvedType.traverseCyclicDFS<A, R>(node, f, context)
+      return this.resolvedType.traverseCyclicDFS(node, f, context)
     }
     throw new Error(`Link to type:'${this.path}' is undefined`)
   }

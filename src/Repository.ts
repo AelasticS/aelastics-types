@@ -9,7 +9,7 @@ function observe(value: any) {}
  *  root Type
  *  each store can have different drivers and connection options
  */
-
+/*
 const prepareForReact: t.types.TraversalFunc<any> = (
   type,
   instance,
@@ -58,7 +58,7 @@ const prepareForReact: t.types.TraversalFunc<any> = (
       return currentResult
   }
   return currentResult
-}
+}*/
 
 export class Repository<T extends t.Any> {
   static create(baseType: t.Any): t.TypeOf<typeof baseType> {

@@ -1,9 +1,9 @@
 import { Place, Belgrade, IPlace } from '../example/travel-network'
 import { types } from '../../src/aelastics-types'
 import isSimpleType = types.isSimpleType
-import { TraversalFunc_Node, WhatToDo } from '../../src/common/TraversalContext'
+import { TraversalFunc, WhatToDo } from '../../src/common/TraversalContext'
 
-const copyObjectPropertyStructure: TraversalFunc_Node<any, { [key: string]: any }> = (
+const copyObjectPropertyStructure: TraversalFunc = (
   node,
   position,
   ct
@@ -61,7 +61,7 @@ const copyObjectPropertyStructure: TraversalFunc_Node<any, { [key: string]: any 
 
 describe('Test cases for copying structure traversals', () => {
   it('should an object copy - only simple and object properties', () => {
-    let copy: IPlace = Place.traverseDFS<undefined, {}>(
+    let copy: IPlace = Place.traverseDFS(
       Belgrade,
       copyObjectPropertyStructure,
       undefined,

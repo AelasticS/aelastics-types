@@ -1,6 +1,5 @@
 import { VisitedNodes } from './VisitedNodes'
 import { Any } from './Type'
-import { IObjectLiteral } from './CommonDefinitions'
 
 export type PositionType = 'BeforeChildren' | 'AfterChild' | 'AfterAllChildren' | 'Leaf'
 
@@ -18,14 +17,14 @@ export type RoleType =
   | 'asRoot'
 
 // interface {} add parent child info
-export interface NodeInfo<A, R> {
+export interface NodeInfo {
   type: Any
   instance: any
+  isOptional: boolean // is this type optional
   role: RoleType
-  inputArg: R
-  accumulator: A
-  currentResult?: R
-  optional: boolean
+  inputArg: any
+  accumulator: any
+  currentResult?: any
   extra: Partial<{
     propName: string
     index: number
@@ -33,34 +32,7 @@ export interface NodeInfo<A, R> {
     //    unionInstance:any
     //    dicriminantValue:any
   }>
-  parent?: NodeInfo<A, R>
-  currentChild?: NodeInfo<A, R>
-}
-
-export function createNodeInfo<A, R>(
-  type: Any,
-  instance: any,
-  role: RoleType,
-  inputArg: R,
-  accumulator: A,
-  optional: boolean,
-  extra: IObjectLiteral,
-  currentResult?: R,
-  parent?: NodeInfo<A, R>,
-  child?: NodeInfo<A, R>
-): NodeInfo<A, R> {
-  return {
-    type: type,
-    instance: instance,
-    role: role,
-    inputArg: inputArg,
-    accumulator: accumulator,
-    optional: optional,
-    extra: extra,
-    currentResult: currentResult,
-    parent: parent,
-    currentChild: child
-  }
+  currentChild?: NodeInfo
 }
 
 export type ExtraInfo = Partial<{
@@ -75,73 +47,20 @@ export type ExtraInfo = Partial<{
 
 export type WhatToDo = 'continue' | 'terminate' | 'skipChildren' | 'skipChild'
 
-export type TraversalFunc_Node<A, R> = (
-  node: NodeInfo<A, R>,
+export type TraversalFunc = (
+  node: NodeInfo,
   pos: PositionType,
-  ct: TraversalContext<R>
-) => [R, WhatToDo]
+  ct: TraversalContext
+) => [any, WhatToDo]
 
-export type TraversalFunc_NEW<A, R> = (
-  type: Any,
-  value: any,
-  accumulator: A,
-  prevousNodeResult: R,
-  position: PositionType,
-  role: RoleType,
-  extra: ExtraInfo,
-  context: TraversalContext<R>,
-  parentNodeInfo?: NodeInfo<A, R>
-) => [R, WhatToDo]
-
-export type TraversalFunc_OLD<R> = (
-  type: Any,
-  value: any,
-  accumulator: R,
-  position: PositionType,
-  role: RoleType,
-  extra: ExtraInfo,
-  context: TraversalContext<R>
-) => R
-
-export class TraversalContext<R> {
-  initValue: R
-  public readonly entries: TraversalContextEntry[] = []
+export class TraversalContext {
+  initValue: any
   skipSimpleTypes: boolean = true
   traversed: VisitedNodes<Any, any, any> = new VisitedNodes<Any, any, any>()
 
-  constructor(initValue: R, skipSimpleTypes: boolean) {
+  constructor(initValue: any, skipSimpleTypes: boolean) {
     this.initValue = initValue
     this.skipSimpleTypes = skipSimpleTypes
     //    this.pushEntry('BeforeChildren', 'asRoot', {})
-  }
-
-  pushEntry(/*p: PositionType,*/ r: RoleType, e: ExtraInfo) {
-    this.entries.push(new TraversalContextEntry(/*p, */ r, e, this.parentEntry))
-  }
-
-  popEntry() {
-    return this.entries.pop()
-  }
-
-  get parentEntry(): TraversalContextEntry | undefined {
-    if (this.entries.length <= 0) {
-      // throw new Error(`TraversalContext.pop() error: array of entries empty!`)
-      return undefined
-    }
-    return this.entries[this.entries.length - 1]
-  }
-}
-
-class TraversalContextEntry {
-  parent?: TraversalContextEntry
-  //  position: PositionType
-  role: RoleType
-  extra: ExtraInfo
-
-  constructor(/*p: PositionType,*/ r: RoleType, e: ExtraInfo, parent?: TraversalContextEntry) {
-    //    this.position = p
-    this.role = r
-    this.extra = e
-    this.parent = parent
   }
 }

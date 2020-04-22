@@ -63,8 +63,8 @@ export namespace types {
     return v instanceof ct.TypeC
   }
 
-  export type TraversalContext<R> = tc.TraversalContext<R>
-  export type TraversalFunc<R> = tc.TraversalFunc_OLD<R>
+  export type TraversalContext = tc.TraversalContext
+  export type TraversalFunc = tc.TraversalFunc
   export type Any = ct.Any
   export type TypeOf<T extends Any> = ct.TypeOf<T>
   export type ObjectType<T extends cot.Props> = cot.ObjectType<T>
