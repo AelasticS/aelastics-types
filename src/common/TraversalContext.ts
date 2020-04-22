@@ -16,12 +16,15 @@ export type RoleType =
   | 'asReturnType'
   | 'asRoot'
 
+// interface {} add parent child info
+
 export type ExtraInfo = Partial<{
   propName: string
   index: number
   parentType: Any
   parentInstance: any
   parentResult: any
+  childExtra: {}
   optional: boolean
 }>
 

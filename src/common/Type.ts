@@ -18,13 +18,7 @@ import {
   ValidationError
 } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
-import {
-  ExtraInfo,
-  PositionType,
-  RoleType,
-  TraversalContext,
-  TraversalFunc
-} from './TraversalContext'
+import { ExtraInfo, RoleType, TraversalContext, TraversalFunc } from './TraversalContext'
 
 export type Predicate<T> = (value: T) => boolean
 

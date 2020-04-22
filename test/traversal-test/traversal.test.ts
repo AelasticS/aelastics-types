@@ -48,6 +48,46 @@ const countNodes: TraversalFunc<Counters> = (
   return currentResult
 }
 
+const copyObjectPropertyStructure: TraversalFunc<{ [key: string]: any }> = (
+  type,
+  value,
+  currentResult,
+  position,
+  role,
+  extra,
+  context
+) => {
+  if (type.category === 'Object') {
+    if (position === 'BeforeChildren') {
+      switch (role) {
+        case 'asArrayElement':
+        case 'asRoot':
+          currentResult.BeforeChildren += 1
+      }
+    }
+    if (position === 'AfterChild') {
+      switch (role) {
+        case 'asArrayElement':
+        case 'asRoot':
+          currentResult.AfterChild += 1
+      }
+    }
+    if (position === 'AfterAllChildren') {
+      switch (role) {
+        case 'asArrayElement':
+        case 'asRoot':
+          currentResult.AfterAllChildren += 1
+      }
+    }
+  }
+  console.log(
+    `${type.category}:${role}:${value.name}, position:${position}, counter:${JSON.stringify(
+      currentResult
+    )}`
+  )
+  return currentResult
+}
+
 describe('Test cases for traversal', () => {
   test('that objects in cyclic graph are visited exactly once', () => {
     let count = Place.traverse(Belgrade, countNodes, {

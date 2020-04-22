@@ -150,6 +150,7 @@ export abstract class ComplexTypeC<
 
     // before children
     let accumulator: R = f(this, instance, currentResult, 'BeforeChildren', role, extra, context)
+    // add parent extra info
     context.pushEntry(role, { parentType: this, parentInstance: instance })
     for (let [childType, child, childRole, extra] of this.children(instance)) {
       if (childType instanceof SimpleTypeC && context.skipSimpleTypes) {
@@ -170,11 +171,11 @@ export abstract class ComplexTypeC<
           },
           context
         )
-        // after one child
+        // after one child, add child extraInfo
         accumulator = f(this, instance, accumulator, 'AfterChild', role, extra, context)
       }
     }
-    // after children
+    // after children, no children extra, only parent
     accumulator = f(this, instance, accumulator, 'AfterAllChildren', role, extra, context)
     context.popEntry()
     return accumulator
