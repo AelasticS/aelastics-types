@@ -6,10 +6,13 @@ import { success, Path, Result, failures, isFailure, ValidationError } from 'ael
 import { Any, ToDtoContext, DtoTypeOf, TypeC, TypeOf } from './Type'
 import {
   ExtraInfo,
+  NodeInfo,
   PositionType,
   RoleType,
   TraversalContext,
-  TraversalFunc
+  TraversalFunc_NEW,
+  TraversalFunc_OLD,
+  WhatToDo
 } from './TraversalContext'
 
 const getOptionalName = (base: Any): string => `optional ${base.name}`
@@ -56,7 +59,7 @@ export class OptionalTypeC<T extends TypeC<any>> extends TypeC<
 
   traverseCyclic<R>(
     instance: TypeOf<T> | undefined,
-    f: TraversalFunc<R>,
+    f: TraversalFunc_OLD<R>,
     currentResult: R,
     role: RoleType,
     extra: ExtraInfo,
@@ -69,6 +72,30 @@ export class OptionalTypeC<T extends TypeC<any>> extends TypeC<
       role,
       { ...extra, ...{ optional: true } },
       context
+    )
+  }
+
+  traverseCyclic_NEW<A, R>(
+    instance: any,
+    f: TraversalFunc_NEW<A, R>,
+    accumulator: A,
+    parentResult: R,
+    role: RoleType,
+    optional: boolean,
+    extra: ExtraInfo,
+    context: TraversalContext<R>,
+    parentNode?: NodeInfo<any, R>
+  ): [R, WhatToDo] {
+    return this.base.traverseCyclic_NEW(
+      instance,
+      f,
+      accumulator,
+      parentResult,
+      role,
+      true,
+      extra,
+      context,
+      parentNode
     )
   }
 

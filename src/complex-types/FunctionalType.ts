@@ -86,7 +86,6 @@ export class FunctionalTypeC<P extends Props, R extends Any> extends ComplexType
   }
 
   protected *children(instance: any): Generator<[Any, any, RoleType, ExtraInfo]> {
-    return []
     for (let [key, value] of Object.entries(this.args)) {
       yield [value, instance, 'asFuncArgument', { propName: key }]
     }

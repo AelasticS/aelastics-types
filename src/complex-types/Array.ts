@@ -30,7 +30,7 @@ import {
   PositionType,
   RoleType,
   TraversalContext,
-  TraversalFunc
+  TraversalFunc_OLD
 } from '../common/TraversalContext'
 
 /**

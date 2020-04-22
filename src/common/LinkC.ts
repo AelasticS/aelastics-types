@@ -7,7 +7,15 @@ import { Any, FromDtoContext, ToDtoContext, TypeC } from './Type'
 import { TypeSchema, ValidateStatusEnum } from './TypeSchema'
 import { failure, failures, Path, Result, success } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
-import { ExtraInfo, RoleType, TraversalContext, TraversalFunc } from './TraversalContext'
+import {
+  ExtraInfo,
+  NodeInfo,
+  RoleType,
+  TraversalContext,
+  TraversalFunc_NEW,
+  TraversalFunc_OLD,
+  WhatToDo
+} from './TraversalContext'
 
 export class LinkC extends TypeC<any> {
   public readonly schema: TypeSchema
@@ -26,7 +34,7 @@ export class LinkC extends TypeC<any> {
 
   traverseCyclic<R>(
     instance: any,
-    f: TraversalFunc<R>,
+    f: TraversalFunc_OLD<R>,
     currentResult: R,
     role: RoleType,
     extra: ExtraInfo,
@@ -34,6 +42,33 @@ export class LinkC extends TypeC<any> {
   ): R {
     if (this.resolvedType) {
       return this.resolvedType.traverseCyclic(instance, f, currentResult, role, extra, context)
+    }
+    throw new Error(`Link to type:'${this.path}' is undefined`)
+  }
+
+  traverseCyclic_NEW<A, R>(
+    instance: any,
+    f: TraversalFunc_NEW<A, R>,
+    accumulator: A,
+    parentResult: R,
+    role: RoleType,
+    optional: boolean,
+    extra: ExtraInfo,
+    context: TraversalContext<R>,
+    parentNode?: NodeInfo<any, R>
+  ): [R, WhatToDo] {
+    if (this.resolvedType) {
+      return this.resolvedType.traverseCyclic_NEW(
+        instance,
+        f,
+        accumulator,
+        parentResult,
+        role,
+        optional,
+        extra,
+        context,
+        parentNode
+      )
     }
     throw new Error(`Link to type:'${this.path}' is undefined`)
   }

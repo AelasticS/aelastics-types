@@ -1,7 +1,8 @@
 import { VisitedNodes } from './VisitedNodes'
 import { Any } from './Type'
+import { IObjectLiteral } from './CommonDefinitions'
 
-export type PositionType = 'BeforeChildren' | 'AfterChild' | 'AfterAllChildren'
+export type PositionType = 'BeforeChildren' | 'AfterChild' | 'AfterAllChildren' | 'Leaf'
 
 export type RoleType =
   | 'asProperty'
@@ -13,10 +14,51 @@ export type RoleType =
   | 'asIntersectionElement'
   | 'asIdentifierPart'
   | 'asFuncArgument'
-  | 'asReturnType'
+  | 'asFuncValue'
   | 'asRoot'
 
 // interface {} add parent child info
+export interface NodeInfo<A, R> {
+  type: Any
+  instance: any
+  role: RoleType
+  result: R
+  accumulator: A
+  optional: boolean
+  extra: Partial<{
+    propName: string
+    index: number
+    //    unionType:Any
+    //    unionInstance:any
+    //    dicriminantValue:any
+  }>
+  parent: NodeInfo<A, R> | undefined
+  currentChild: NodeInfo<A, R> | undefined
+}
+
+export function createNodeInfo<A, R>(
+  type: Any,
+  instance: any,
+  role: RoleType,
+  result: R,
+  accumulator: A,
+  optional: boolean,
+  extra: IObjectLiteral,
+  parent?: NodeInfo<A, R>,
+  child?: NodeInfo<A, R>
+): NodeInfo<A, R> {
+  return {
+    type: type,
+    instance: instance,
+    role: role,
+    result: result,
+    accumulator: accumulator,
+    optional: optional,
+    extra: extra,
+    parent: parent,
+    currentChild: child
+  }
+}
 
 export type ExtraInfo = Partial<{
   propName: string
@@ -28,10 +70,23 @@ export type ExtraInfo = Partial<{
   optional: boolean
 }>
 
-export type TraversalFunc<R> = (
+export type WhatToDo = 'continue' | 'terminate' | 'skipChildren' | 'skipChild'
+
+export type TraversalFunc_NEW<A, R> = (
   type: Any,
   value: any,
-  currentResult: R,
+  accumulator: A,
+  parentResult: R,
+  position: PositionType,
+  role: RoleType,
+  context: TraversalContext<R>,
+  parentNodeInfo?: NodeInfo<A, R>
+) => [R, WhatToDo]
+
+export type TraversalFunc_OLD<R> = (
+  type: Any,
+  value: any,
+  accumulator: R,
   position: PositionType,
   role: RoleType,
   extra: ExtraInfo,
@@ -51,14 +106,14 @@ export class TraversalContext<R> {
   }
 
   pushEntry(/*p: PositionType,*/ r: RoleType, e: ExtraInfo) {
-    this.entries.push(new TraversalContextEntry(/*p, */ r, e, this.lastEntry))
+    this.entries.push(new TraversalContextEntry(/*p, */ r, e, this.parentEntry))
   }
 
   popEntry() {
     return this.entries.pop()
   }
 
-  get lastEntry(): TraversalContextEntry | undefined {
+  get parentEntry(): TraversalContextEntry | undefined {
     if (this.entries.length <= 0) {
       // throw new Error(`TraversalContext.pop() error: array of entries empty!`)
       return undefined

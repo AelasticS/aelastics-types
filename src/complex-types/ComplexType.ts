@@ -5,11 +5,15 @@
 import { ToDtoContext, InstanceReference, TypeC, FromDtoContext, Any, TypeOf } from '../common/Type'
 import { Path, validationError } from 'aelastics-result'
 import {
+  createNodeInfo,
   ExtraInfo,
+  NodeInfo,
   PositionType,
   RoleType,
   TraversalContext,
-  TraversalFunc
+  TraversalFunc_NEW,
+  TraversalFunc_OLD,
+  WhatToDo
 } from '../common/TraversalContext'
 import { TypeInstancePair, VisitedNodes } from '../common/VisitedNodes'
 import { SimpleTypeC } from '../simple-types/SimpleType'
@@ -135,7 +139,7 @@ export abstract class ComplexTypeC<
 
   traverseCyclic<R>(
     instance: V,
-    f: TraversalFunc<R>,
+    f: TraversalFunc_OLD<R>,
     currentResult: R,
     role: RoleType,
     //   position:PositionType,
@@ -144,7 +148,7 @@ export abstract class ComplexTypeC<
   ): R {
     let pair: TypeInstancePair<Any, any> = [this, instance]
     if (context.traversed.has(pair)) {
-      return currentResult
+      return context.traversed.get(pair)
     }
     context.traversed.set(pair, undefined)
 
@@ -179,5 +183,100 @@ export abstract class ComplexTypeC<
     accumulator = f(this, instance, accumulator, 'AfterAllChildren', role, extra, context)
     context.popEntry()
     return accumulator
+  }
+
+  traverseCyclic_NEW<A, R>(
+    instance: any,
+    f: TraversalFunc_NEW<any, R>,
+    accumulator: A,
+    parentResult: R,
+    role: RoleType,
+    optional: boolean,
+    extra: ExtraInfo,
+    context: TraversalContext<R>,
+    parentNode?: NodeInfo<any, R>
+  ): [R, WhatToDo] {
+    let pair: TypeInstancePair<Any, any> = [this, instance]
+    if (context.traversed.has(pair)) {
+      return [context.traversed.get(pair), 'continue']
+    }
+    // before children
+    let [currentResult, whatToDo] = f(
+      this,
+      instance,
+      accumulator,
+      parentResult,
+      'BeforeChildren',
+      role,
+      context,
+      parentNode
+    )
+    context.traversed.set(pair, currentResult)
+
+    // add parent extra info
+    context.pushEntry(role, { parentType: this, parentInstance: instance })
+    let thisNodeInfo = createNodeInfo(
+      this,
+      instance,
+      role,
+      currentResult,
+      accumulator,
+      optional,
+      extra,
+      parentNode
+    )
+
+    for (let [childType, child, childRole, extra] of this.children(instance)) {
+      if (childType instanceof SimpleTypeC && context.skipSimpleTypes) {
+        continue
+      } else {
+        let [childResult, childWhatToDo] = this.traverseCyclic_NEW(
+          // childType.traverseCyclic_NEW(
+          child,
+          f,
+          accumulator,
+          currentResult,
+          childRole,
+          false,
+          extra,
+          context,
+          thisNodeInfo
+        )
+        if (childWhatToDo === 'skipChildren') {
+          break
+        }
+        switch (childWhatToDo) {
+          case 'skipChild':
+            continue
+          case 'terminate':
+            return [currentResult, whatToDo]
+          case 'continue':
+            // after one child
+            ;[currentResult, whatToDo] = f(
+              this,
+              instance,
+              accumulator,
+              currentResult,
+              'AfterChild',
+              role,
+              context,
+              parentNode
+            )
+        }
+      }
+    }
+    // after children, no children extra, only parent
+    ;[currentResult, whatToDo] = f(
+      this,
+      instance,
+      accumulator,
+      currentResult,
+      'AfterAllChildren',
+      role,
+      context,
+      parentNode
+    )
+    context.popEntry()
+    return [currentResult, whatToDo]
   }
 }

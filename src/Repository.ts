@@ -35,7 +35,7 @@ const prepareForReact: t.types.TraversalFunc<any> = (
           case 'asIdentifierPart':
           case 'asIntersectionElement':
           case 'asFuncArgument':
-          case 'asReturnType':
+          case 'asFuncValue':
             break
         }
       }

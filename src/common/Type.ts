@@ -18,7 +18,16 @@ import {
   ValidationError
 } from 'aelastics-result'
 import { VisitedNodes } from './VisitedNodes'
-import { ExtraInfo, RoleType, TraversalContext, TraversalFunc } from './TraversalContext'
+import {
+  createNodeInfo,
+  ExtraInfo,
+  NodeInfo,
+  RoleType,
+  TraversalContext,
+  TraversalFunc_NEW,
+  TraversalFunc_OLD,
+  WhatToDo
+} from './TraversalContext'
 
 export type Predicate<T> = (value: T) => boolean
 
@@ -331,7 +340,7 @@ export abstract class TypeC<V, G = V, T = V> {
 
   public abstract validateLinks(traversed: Map<Any, Any>): Result<boolean>
 
-  public traverse<R>(instance: V, f: TraversalFunc<R>, initValue: R): R {
+  public traverse<R>(instance: V, f: TraversalFunc_OLD<R>, initValue: R): R {
     return this.traverseCyclic<R>(
       instance,
       f,
@@ -342,15 +351,42 @@ export abstract class TypeC<V, G = V, T = V> {
     )
   }
 
+  public traverse_NEW<A, R>(instance: V, f: TraversalFunc_NEW<A, R>, initAcc: A, initResult: R): R {
+    let [res, _] = this.traverseCyclic_NEW<A, R>(
+      instance,
+      f,
+      initAcc,
+      initResult,
+      'asRoot',
+      false,
+      {},
+      new TraversalContext<R>(initResult, false),
+      undefined
+    )
+    return res
+  }
+
   public abstract traverseCyclic<R>(
     instance: V,
-    f: TraversalFunc<R>,
+    f: TraversalFunc_OLD<R>,
     currentResult: R,
     role: RoleType,
     //    position: PositionType,
     extra: ExtraInfo,
     context: TraversalContext<R>
   ): R
+
+  public abstract traverseCyclic_NEW<A, R>(
+    instance: any,
+    f: TraversalFunc_NEW<any, R>,
+    accumulator: A,
+    parentResult: R,
+    role: RoleType,
+    optional: boolean,
+    extra: ExtraInfo,
+    context: TraversalContext<R>,
+    parentNode?: NodeInfo<any, R>
+  ): [R, WhatToDo]
 }
 
 /**

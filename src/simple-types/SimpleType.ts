@@ -6,10 +6,13 @@ import { Any, ToDtoContext, FromDtoContext, TypeC } from '../common/Type'
 import { Path, Result, success } from 'aelastics-result'
 import {
   ExtraInfo,
+  NodeInfo,
   PositionType,
   RoleType,
   TraversalContext,
-  TraversalFunc
+  TraversalFunc_NEW,
+  TraversalFunc_OLD,
+  WhatToDo
 } from '../common/TraversalContext'
 
 export abstract class SimpleTypeC<V, G = V, T = V> extends TypeC<V, G, T> {
@@ -34,12 +37,26 @@ export abstract class SimpleTypeC<V, G = V, T = V> extends TypeC<V, G, T> {
 
   traverseCyclic<R>(
     instance: V,
-    f: TraversalFunc<R>,
+    f: TraversalFunc_OLD<R>,
     currentResult: R,
     role: RoleType,
     extra: ExtraInfo,
     context: TraversalContext<R>
   ): R {
-    return f(this, instance, currentResult, 'AfterAllChildren', role, extra, context)
+    return f(this, instance, currentResult, 'Leaf', role, extra, context)
+  }
+
+  traverseCyclic_NEW<A, R>(
+    instance: any,
+    f: TraversalFunc_NEW<A, R>,
+    accumulator: A,
+    parentResult: R,
+    role: RoleType,
+    optional: boolean,
+    extra: ExtraInfo,
+    context: TraversalContext<R>,
+    parentNode?: NodeInfo<any, R>
+  ): [R, WhatToDo] {
+    return f(this as Any, instance, accumulator, parentResult, 'Leaf', role, context, parentNode)
   }
 }

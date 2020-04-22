@@ -2,15 +2,17 @@ import { Place, Belgrade } from '../example/travel-network'
 import { types } from '../../src/aelastics-types'
 import TraversalFunc = types.TraversalFunc
 import isSimpleType = types.isSimpleType
+import { TraversalFunc_NEW } from '../../src/common/TraversalContext'
 
-const copyObjectPropertyStructure: TraversalFunc<{ [key: string]: any }> = (
+const copyObjectPropertyStructure: TraversalFunc_NEW<any, { [key: string]: any }> = (
   type,
   value,
-  currentResult,
+  accumulator,
+  parentResult,
   position,
   role,
-  extra,
-  context
+  context,
+  parentNodeInfo
 ) => {
   switch (type.category) {
     case 'Object':
